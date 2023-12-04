@@ -1,0 +1,30 @@
+library STD;
+use STD.STANDARD.ALL;
+
+library IEEE;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity Memory is
+    Port ( clk,wr_flag : in STD_LOGIC;
+           address : in STD_LOGIC_VECTOR(15 downto 0);
+           data_w : in STD_LOGIC_VECTOR(15 downto 0);
+           data_r : out STD_LOGIC_VECTOR(15 downto 0));
+end Memory;
+
+architecture form of Memory is
+    type RAM_array is array (100 downto 0) of STD_LOGIC_VECTOR(15 downto 0);
+    signal RAM : RAM_array := (others => (others => '0'));
+begin
+data_r <= RAM(conv_integer(address));
+    process(wr_flag,data_w,address,clk)
+    begin
+	     if wr_flag = '1' then
+          if rising_edge(clk) then
+                RAM(conv_integer(address)) <= data_w;
+            end if;
+        end if;
+    end process;
+end form;
