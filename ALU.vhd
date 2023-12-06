@@ -1,146 +1,118 @@
+--16 bit adder
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-entity full_adder is
-	port(
-		a, b, cin: in std_logic;
-		s, p, g: out std_logic);
-end entity;
-
-architecture basic of full_adder is
-begin
-	
-	g <= a and b;
-	p <= a or b;
-	s <= a xor b xor cin;
-	
-end architecture;
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-entity carry_generate is
-	port(
-		P, G: in std_logic_vector(3 downto 0);
-		cin: in std_logic;
-		Cout: out std_logic_vector(3 downto 0));
-end entity;
-
-architecture basic of carry_generate is
-	signal C: std_logic_vector(4 downto 0);
-begin
-	C(0) <= cin;
-	logic:
-	for i in 1 to 4 generate
-		C(i) <= G(i-1) or (P(i-1) and C(i-1)); 
-	end generate;
-
-	Cout <= C(4 downto 1);
-end architecture;
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.math_real.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
 
 entity adder is
-	port(
-		A, B: in std_logic_vector(15 downto 0);
-		S: out std_logic_vector(15 downto 0);
-		cin: in std_logic;
-		Cout: out std_logic_vector(15 downto 0));
-end entity;
+  port (s: out std_logic_vector(15 downto 0);
+		c_o: out std_logic;
+		a, b: in std_logic_vector(15 downto 0);
+		c_i: in std_logic );
+end adder;
 
-architecture look_ahead of adder is
-	signal C: std_logic_vector(16 downto 0);
-	signal P, G: std_logic_vector(15 downto 0);
-	
-	component full_adder is
-		port(
-			a, b, cin: in std_logic;
-			s, p, g: out std_logic);
-	end component;
-	
-	component carry_generate is
-		port(
-			P, G: in std_logic_vector(3 downto 0);
-			cin: in std_logic;
-			Cout: out std_logic_vector(3 downto 0));
-	end component;
-	
+architecture Behavioral of adder is
+   signal temp : std_logic_vector(16 downto 0);
 begin
+   temp <= ('0' & a) + b + c_i;
+   s    <= temp(15 downto 0);
+   c_o  <= temp(16);
+end Behavioral;
 
-	C(0) <= cin;
-	
-	ADDER:
-	for i in 0 to 15 generate
-		ADDX: full_adder
-			port map(a => A(i), b => B(i), cin => C(i),
-				s => S(i), p => P(i), g => G(i));
-	end generate ADDER;
-	
-	CARRIER:
-	for i in 0 to 3 generate
-		CARRYX: carry_generate
-			port map(P => P((i+1)*4-1 downto i*4),
-				G => G((i+1)*4-1 downto i*4),
-				cin => C(i*4), Cout => C((i+1)*4 downto i*4+1));
-	end generate CARRIER;
-	
-	Cout <= C(16 downto 1);
-	
-end architecture;
 
+-- 16 bit subtractor
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity subtractor is
+  port (s: out std_logic_vector(15 downto 0);
+		c_o: out std_logic;
+		a, b: in std_logic_vector(15 downto 0);
+		c_i: in std_logic );
+end subtractor;
+
+architecture Behavioral of subtractor is
+   signal temp : std_logic_vector(16 downto 0);
+begin
+   temp <= ('0' & a) - b - c_i;
+   s    <= temp(15 downto 0);
+   c_o  <= temp(16);
+end Behavioral;
+
+
+--16 bit mulitplier
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity alu is
-	port(
-		ALU_A, ALU_B: in std_logic_vector(15 downto 0);
-		ALU_op: in std_logic_vector(2 downto 0);
-		ALU_Z, ALU_Carry: out std_logic;
-		ALU_C: out std_logic_vector(15 downto 0));
-		
-end entity;
+entity multiplier is
+  port (a, b: in std_logic_vector (15 downto 0);
+		mul: out std_logic_vector (31 downto 0) );
+end multiplier;
 
-architecture behave of alu is
-	signal output_temp: std_logic_vector(15 downto 0);
-	signal output_add: std_logic_vector(15 downto 0);
-	signal C: std_logic_vector(16 downto 1);
-	
-	component adder is
-		port(
-			A, B: in std_logic_vector(15 downto 0);
-			S: out std_logic_vector(15 downto 0);
-			cin: in std_logic;
-			Cout: out std_logic_vector(15 downto 0));
-	end component;
-	
+architecture Behavioral of multiplier is
 begin
-	
-	adder1: adder
-		port map(
-			A => ALU_A, B => ALU_B,
-			cin =>'0', S => output_add, Cout => C);
-	ALU_Carry <= C(16);
-	
-	process(ALU_A, ALU_B, output_add, ALU_op)
-	begin
-		if (ALU_op = "000") then
-			output_temp <= output_add;
-		elsif (ALU_op = "001") then
-			output_temp <= ALU_A xor ALU_B;
-		else
-			output_temp <= ALU_A nand ALU_B;
-		end if;
-	end process;
-	
-	ALU_Z <= '1' when (to_integer(unsigned(output_temp)) = 0) else '0';
-	ALU_C <= output_temp;
+    mul <= std_logic_vector(unsigned(a) * unsigned(b));
+end Behavioral;
 
-		
-end architecture;
-	
+
+-- 8x3 MUX
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity MUX_8x3 is
+  port (p_out: out std_logic_vector (15 downto 0);
+		sel: in std_logic_vector (2 downto 0);
+		in_0, in_1, in_2, in_3, in_4, in_5, in_6, in_7: in std_logic_vector (15 downto 0));
+end MUX_8x3;
+
+architecture Behavioral of MUX_8x3 is
+begin
+  with sel select
+    p_out <=
+      in_0 when "000",
+      in_1 when "001",
+      in_2 when "010",
+      in_3 when "011",
+      in_4 when "100",
+      in_5 when "101",
+      in_6 when "110",
+      in_7 when "111",
+      (others => '0') when others;
+end Behavioral;
+
+
+--ALU
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity alu is
+  port (alu_a, alu_b: in std_logic_vector(15 downto 0);
+		alu_sel: in std_logic_vector(2 downto 0);
+		alu_c: out std_logic_vector(15 downto 0));
+end alu;
+
+architecture Behavioral of alu is
+  signal s0, s1, s2, s3, s4, s5: std_logic_vector(15 downto 0);
+  signal s6: std_logic_vector(31 downto 0);
+begin
+  
+  addition: entity work.adder 
+  port map (a => alu_a, b => alu_b, c_i => '0', s => s0);
+  
+  subtraction: entity work.subtractor
+  port map (a => alu_a, b => alu_b, c_i => '0', s => s1);
+  
+  multiplication: entity work.multiplier
+  port map (a => alu_a, b => alu_b, mul => s6);
+ 
+  s2 <= s6(15 downto 0);
+  s3 <= (alu_a AND alu_b);
+  s4 <= (alu_a OR alu_b);
+  s5 <= (NOT alu_a OR alu_b);
+  
+  MUX: entity work.MUX_8x3
+  port map (sel => alu_sel, in_0 => s0, in_1 => s1, in_2 => s2, in_3 => s3, in_4 => s4, in_5 => s5, in_6 => "0000000000000000", in_7 => "0000000000000000", p_out => alu_c);
+
+ end Behavioral;

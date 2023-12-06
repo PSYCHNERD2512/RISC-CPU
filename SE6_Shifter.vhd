@@ -9,7 +9,7 @@ end entity SE6_shifter;
 architecture bhv of SE6_shifter is
 signal temp: std_logic_vector(15 downto 0);
 begin
-	extend: process(input)
+	extend: process(input,temp)
 	begin
 		if (input(5) = '0') then
 			temp <= "0000000000" & input;

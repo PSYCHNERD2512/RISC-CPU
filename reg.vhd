@@ -16,7 +16,7 @@ architecture bhv of reg is
 		output(15 downto 0) <= storage(15 downto 0);
 		edit_process: process(clk)
 		begin
-			if(clk='1' and clk'event and en='1') then
+			if(clk='0' and clk'event and en='1') then
 				storage(15 downto 0) <= input(15 downto 0);
 			else
 				storage(15 downto 0) <= storage(15 downto 0);	-- to prevent an inferred latch from being created

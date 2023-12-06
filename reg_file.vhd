@@ -18,10 +18,12 @@ component reg is
 			en, clk: in std_logic;
 			output: out std_logic_vector(15 downto 0));
 end component reg;
+	
 	-- enable signals for respective register
 	signal e0, e1, e2, e3, e4, e5, e6,  e7: std_logic;
 	-- output signals for respective register
 	signal r0, r1, r2, r3, r4, r5, r6, r7: std_logic_vector(15 downto 0);
+
 begin
 
 	-- enable signals of the regsiters
